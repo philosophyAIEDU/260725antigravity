@@ -3,20 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Physics Lab: Mechanics (고등 물리학 I 역학 실습)</title>
+  <title>Physics Lab: Mechanics (고등 물리학 I 역학 시뮬레이터)</title>
+  <!-- Google Fonts: Inter & JetBrains Mono for High-End EdTech Aesthetics -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg-dark: #0f172a;
-      --panel-bg: #1e293b;
-      --panel-border: #334155;
+      --bg-dark: #090d16;
+      --panel-bg: rgba(15, 23, 42, 0.75);
+      --panel-border: rgba(51, 65, 85, 0.6);
+      --panel-border-glow: rgba(56, 189, 248, 0.3);
       --cyan-accent: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.25);
       --cyan-hover: #0284c7;
       --rose-accent: #f43f5e;
-      --green-accent: #22c55e;
+      --green-accent: #10b981;
       --orange-accent: #f97316;
-      --yellow-accent: #eab308;
+      --yellow-accent: #f59e0b;
+      --purple-accent: #a855f7;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
+      --text-subtle: #64748b;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
     }
 
     * {
@@ -27,65 +39,102 @@
     }
 
     body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
       color: var(--text-main);
       height: 100vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
     }
 
     /* Header Bar */
     header {
-      background-color: #0b1120;
+      background: rgba(11, 17, 32, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--panel-border);
-      padding: 10px 20px;
+      padding: 0 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 56px;
+      height: 60px;
       flex-shrink: 0;
+      z-index: 20;
     }
 
     .app-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--cyan-accent);
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, var(--cyan-accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+    }
+
+    .app-title svg {
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
     }
 
     .mode-tabs {
       display: flex;
-      gap: 8px;
-      background: #0f172a;
+      gap: 4px;
+      background: rgba(15, 23, 42, 0.8);
       padding: 4px;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--panel-border);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
     }
 
     .tab-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 6px 14px;
-      font-size: 0.85rem;
+      padding: 7px 16px;
+      font-size: 0.82rem;
       font-weight: 600;
-      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .tab-btn:hover {
       color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .tab-btn.active {
-      background-color: var(--cyan-accent);
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
       color: #0f172a;
-      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
     }
 
     .header-actions {
@@ -94,20 +143,25 @@
     }
 
     .btn-secondary {
-      background: var(--panel-bg);
+      background: rgba(30, 41, 59, 0.7);
       border: 1px solid var(--panel-border);
       color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
       font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .btn-secondary:hover {
-      background: #2d3748;
+      background: rgba(51, 65, 85, 0.8);
       border-color: var(--cyan-accent);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
     }
 
     /* Main Content Layout */
@@ -122,7 +176,7 @@
     .canvas-panel {
       flex: 65;
       position: relative;
-      background-color: #090d16;
+      background-color: #060911;
       display: flex;
       flex-direction: column;
       border-right: 1px solid var(--panel-border);
@@ -134,21 +188,22 @@
       display: block;
     }
 
-    /* HUD Overlay */
+    /* Modern Glassmorphic HUD Overlay */
     .hud-overlay {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(8px);
+      top: 16px;
+      left: 16px;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      gap: 20px;
       pointer-events: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
     }
 
     .hud-item {
@@ -157,91 +212,105 @@
     }
 
     .hud-label {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.05em;
       margin-bottom: 2px;
     }
 
     .hud-value {
-      font-size: 1.05rem;
+      font-size: 1.15rem;
       font-weight: 700;
-      font-family: monospace;
+      font-family: 'JetBrains Mono', monospace;
       color: var(--cyan-accent);
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
     }
 
     /* Mission Overlay Card */
     .mission-overlay {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(30, 41, 59, 0.9);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--cyan-accent);
-      border-radius: 8px;
-      padding: 12px 16px;
-      max-width: 320px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      top: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      width: 320px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.15);
+      transition: all 0.3s ease;
     }
 
     .mission-title {
       font-size: 0.95rem;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--cyan-accent);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     .mission-desc {
       font-size: 0.82rem;
       color: var(--text-main);
-      line-height: 1.35;
-      margin-bottom: 8px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+      background: rgba(30, 41, 59, 0.5);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .mission-feedback {
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 6px;
-      border-radius: 4px;
-      background: rgba(15, 23, 42, 0.6);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: rgba(11, 17, 32, 0.8);
       color: var(--yellow-accent);
+      border-left: 3px solid var(--yellow-accent);
     }
 
-    /* Right Panel: Controls & Formulas */
+    /* Right Panel: Controls & Math */
     .control-panel {
       flex: 35;
       background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       display: flex;
       flex-direction: column;
       overflow-y: auto;
-      padding: 16px;
+      padding: 18px;
       gap: 16px;
     }
 
     .panel-section {
-      background: #0f172a;
+      background: rgba(15, 23, 42, 0.6);
       border: 1px solid var(--panel-border);
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       padding: 14px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
     .section-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--cyan-accent);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 6px;
     }
 
-    /* Controls Grid */
+    /* Control Groups */
     .control-group {
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .control-group:last-child {
@@ -252,7 +321,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       font-size: 0.82rem;
     }
 
@@ -262,47 +331,70 @@
     }
 
     .control-val-box {
-      font-family: monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
       color: var(--cyan-accent);
-      background: #1e293b;
-      padding: 2px 6px;
-      border-radius: 4px;
+      background: rgba(30, 41, 59, 0.8);
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--panel-border);
       font-size: 0.85rem;
-      width: 60px;
+      width: 65px;
       text-align: right;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .control-val-box:focus {
+      border-color: var(--cyan-accent);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
     }
 
     .slider-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     input[type="range"] {
       flex: 1;
-      height: 5px;
+      height: 6px;
       border-radius: 3px;
-      background: var(--panel-border);
+      background: #1e293b;
       outline: none;
       accent-color: var(--cyan-accent);
       cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    input[type="range"]:hover {
+      background: #334155;
     }
 
     .toggle-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      gap: 10px;
     }
 
     .checkbox-label {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       font-size: 0.8rem;
-      color: var(--text-main);
+      font-weight: 500;
+      color: var(--text-muted);
       cursor: pointer;
+      background: rgba(30, 41, 59, 0.4);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .checkbox-label:hover {
+      color: var(--text-main);
+      border-color: var(--panel-border);
     }
 
     .checkbox-label input {
@@ -310,82 +402,98 @@
       cursor: pointer;
     }
 
-    /* Action Buttons */
+    /* Action Buttons Grid */
     .action-buttons {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
-      gap: 8px;
+      gap: 10px;
     }
 
     .btn-action {
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 0.9rem;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
       font-weight: 700;
+      font-family: 'Inter', sans-serif;
       border: none;
       cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .btn-action:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
 
     .btn-launch {
       background: linear-gradient(135deg, #0284c7, #38bdf8);
       color: #0f172a;
-      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+      box-shadow: 0 4px 16px rgba(56, 189, 248, 0.4);
+    }
+
+    .btn-launch:hover {
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+      filter: brightness(1.1);
     }
 
     .btn-pause {
-      background: #334155;
+      background: rgba(51, 65, 85, 0.8);
       color: var(--text-main);
+      border: 1px solid var(--panel-border);
+    }
+
+    .btn-pause:hover {
+      background: rgba(71, 85, 105, 0.9);
     }
 
     .btn-slow {
-      background: #334155;
+      background: rgba(51, 65, 85, 0.8);
       color: var(--text-main);
+      border: 1px solid var(--panel-border);
     }
 
     .btn-slow.active {
-      background: var(--rose-accent);
+      background: linear-gradient(135deg, #e11d48, #f43f5e);
       color: white;
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.4);
     }
 
     .btn-clear {
       width: 100%;
-      padding: 8px;
+      padding: 9px;
       background: transparent;
       border: 1px dashed var(--panel-border);
       color: var(--text-muted);
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       font-size: 0.8rem;
+      font-weight: 600;
       cursor: pointer;
-      margin-top: 8px;
+      margin-top: 6px;
+      transition: all 0.2s;
     }
 
     .btn-clear:hover {
       border-color: var(--rose-accent);
       color: var(--rose-accent);
+      background: rgba(244, 63, 94, 0.05);
     }
 
     /* Math Formula Display Box */
     .formula-box {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.82rem;
-      background: #090d16;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: #060911;
       border: 1px solid var(--panel-border);
-      border-radius: 6px;
-      padding: 10px;
-      line-height: 1.6;
-      color: #e2e8f0;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      line-height: 1.7;
+      color: #cbd5e1;
     }
 
     .formula-line {
       display: flex;
       justify-content: space-between;
-      border-bottom: 1px dotted rgba(255,255,255,0.1);
-      padding-bottom: 2px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 3px;
       margin-bottom: 4px;
     }
 
@@ -394,18 +502,26 @@
       margin-bottom: 0;
     }
 
+    .formula-val {
+      font-weight: 700;
+      color: var(--cyan-accent);
+    }
+
     /* Bottom Panel: Analytics & Graphs */
     .bottom-panel {
-      height: 220px;
-      background: #0b1120;
+      height: 230px;
+      background: rgba(11, 17, 32, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border-top: 1px solid var(--panel-border);
       display: flex;
       flex-shrink: 0;
+      z-index: 10;
     }
 
     .graph-container {
       flex: 1;
-      padding: 8px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
       border-right: 1px solid var(--panel-border);
@@ -420,7 +536,7 @@
       font-size: 0.75rem;
       font-weight: 700;
       color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -432,40 +548,47 @@
       height: 100%;
     }
 
-    /* Table view in Mode 3 */
+    /* Table View in Mode 3 */
     .data-table-container {
       width: 100%;
       height: 100%;
       overflow-y: auto;
-      padding: 8px;
+      padding: 14px;
     }
 
     table.data-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       text-align: left;
     }
 
     table.data-table th, table.data-table td {
-      padding: 6px 10px;
+      padding: 8px 12px;
       border-bottom: 1px solid var(--panel-border);
     }
 
     table.data-table th {
-      background: var(--panel-bg);
+      background: rgba(30, 41, 59, 0.9);
       color: var(--cyan-accent);
+      font-weight: 700;
       position: sticky;
       top: 0;
     }
 
-    /* Tooltip / Badges */
+    table.data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Badges */
     .badge {
-      font-size: 0.7rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--panel-border);
-      color: var(--text-main);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(51, 65, 85, 0.6);
+      color: var(--cyan-accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
     }
   </style>
 </head>
@@ -474,24 +597,30 @@
   <!-- Header Bar -->
   <header>
     <div class="app-title">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M12 2a10 10 0 0 1 10 10"></path>
         <circle cx="12" cy="12" r="3" fill="#38bdf8"></circle>
       </svg>
-      Interactive Physics Lab: Mechanics (고등 물리학 I 역학 실습)
+      Physics Lab: Mechanics (고등 물리학 I 역학 시뮬레이터)
     </div>
 
     <div class="mode-tabs">
-      <button class="tab-btn active" id="tabMission" onclick="switchMode('mission')">미션 챌린지 모드</button>
-      <button class="tab-btn" id="tabSandbox" onclick="switchMode('sandbox')">자유 실험실</button>
-      <button class="tab-btn" id="tabData" onclick="switchMode('data')">데이터 & 그래프 분석</button>
+      <button class="tab-btn active" id="tabMission" onclick="switchMode('mission')">
+        🎯 미션 챌린지 모드
+      </button>
+      <button class="tab-btn" id="tabSandbox" onclick="switchMode('sandbox')">
+        🧪 자유 실험실
+      </button>
+      <button class="tab-btn" id="tabData" onclick="switchMode('data')">
+        📊 데이터 & 그래프 분석
+      </button>
     </div>
 
     <div class="header-actions">
-      <button class="btn-secondary" onclick="exportPreset()">프리셋 저장</button>
-      <button class="btn-secondary" onclick="importPreset()">프리셋 불러오기</button>
-      <button class="btn-secondary" onclick="resetAll()">초기화</button>
+      <button class="btn-secondary" onclick="exportPreset()">💾 프리셋 저장</button>
+      <button class="btn-secondary" onclick="importPreset()">📂 프리셋 불러오기</button>
+      <button class="btn-secondary" onclick="resetAll()">🔄 초기화</button>
     </div>
   </header>
 
@@ -522,14 +651,14 @@
         </div>
       </div>
 
-      <!-- Mission Info Card (Visible in Mission Mode) -->
+      <!-- Mission Info Card -->
       <div class="mission-overlay" id="missionCard">
         <div class="mission-title">
           <span id="missionLevelTitle">Level 1: 기본 포물선 운동</span>
-          <span class="badge" id="missionBadge">미션 진행중</span>
+          <span class="badge" id="missionBadge">Level 1 / 5</span>
         </div>
         <div class="mission-desc" id="missionDesc">
-          수평 거리 50m 지점에 위치한 타겟을 맞추세요.
+          수평 거리 50m 지점에 위치한 타겟을 맞추세요. (허용 오차 ±2.5m)
         </div>
         <div class="mission-feedback" id="missionFeedback">
           발사 버튼을 눌러 시뮬레이션을 시작하세요.
@@ -542,15 +671,15 @@
       
       <!-- Actions -->
       <div class="action-buttons">
-        <button class="btn-action btn-launch" id="btnLaunch" onclick="toggleLaunch()">발사 (Launch)</button>
-        <button class="btn-action btn-pause" id="btnPause" onclick="togglePause()">일시정지</button>
-        <button class="btn-action btn-slow" id="btnSlow" onclick="toggleSlow()">0.25x</button>
+        <button class="btn-action btn-launch" id="btnLaunch" onclick="toggleLaunch()">🚀 발사 (Launch)</button>
+        <button class="btn-action btn-pause" id="btnPause" onclick="togglePause()">⏸️ 일시정지</button>
+        <button class="btn-action btn-slow" id="btnSlow" onclick="toggleSlow()">⏱️ 0.25x</button>
       </div>
-      <button class="btn-clear" onclick="clearTrajectories()">궤적 기록 초기화</button>
+      <button class="btn-clear" onclick="clearTrajectories()">🗑️ 궤적 기록 초기화</button>
 
-      <!-- Parameters Input -->
+      <!-- Launch Parameters Input -->
       <div class="panel-section">
-        <div class="section-title">발사 조건 설정</div>
+        <div class="section-title">⚙️ 발사 조건 설정</div>
         
         <div class="control-group">
           <div class="control-label-row">
@@ -595,7 +724,7 @@
 
       <!-- Environment Parameters -->
       <div class="panel-section">
-        <div class="section-title">환경 변수 설정</div>
+        <div class="section-title">🌍 환경 변수 설정</div>
 
         <div class="control-group">
           <div class="control-label-row">
@@ -630,7 +759,7 @@
 
       <!-- Vector Visual Toggles -->
       <div class="panel-section">
-        <div class="section-title">벡터 Visual 옵션</div>
+        <div class="section-title">📐 벡터 시각화 옵션</div>
         <div class="toggle-grid">
           <label class="checkbox-label">
             <input type="checkbox" id="chkVelVec" checked onchange="draw()"> 속도 벡터 (v⃗)
@@ -649,13 +778,13 @@
 
       <!-- Live Formulas Box -->
       <div class="panel-section">
-        <div class="section-title">실시간 수식 계산 (Equations)</div>
+        <div class="section-title">🧮 실시간 수식 계산 (Equations)</div>
         <div class="formula-box" id="formulaBox">
-          <div class="formula-line"><span>v_x = v₀ cos(θ)</span> <span id="eqVx">0.00 m/s</span></div>
-          <div class="formula-line"><span>v_y = v₀ sin(θ) - gt</span> <span id="eqVy">0.00 m/s</span></div>
-          <div class="formula-line"><span>h_max = y₀ + v_y0²/(2g)</span> <span id="eqHmax">0.00 m</span></div>
-          <div class="formula-line"><span>E_k = ½m(v_x² + v_y²)</span> <span id="eqEk">0.00 J</span></div>
-          <div class="formula-line"><span>E_p = mgh</span> <span id="eqEp">0.00 J</span></div>
+          <div class="formula-line"><span>v_x = v₀ cos(θ)</span> <span class="formula-val" id="eqVx">0.00 m/s</span></div>
+          <div class="formula-line"><span>v_y = v₀ sin(θ) - gt</span> <span class="formula-val" id="eqVy">0.00 m/s</span></div>
+          <div class="formula-line"><span>h_max = y₀ + v_y0²/(2g)</span> <span class="formula-val" id="eqHmax">0.00 m</span></div>
+          <div class="formula-line"><span>E_k = ½m(v_x² + v_y²)</span> <span class="formula-val" id="eqEk">0.00 J</span></div>
+          <div class="formula-line"><span>E_p = mgh</span> <span class="formula-val" id="eqEp">0.00 J</span></div>
         </div>
       </div>
 
@@ -670,7 +799,7 @@
     <div class="graph-container" id="graphContainer1">
       <div class="graph-header">
         <span>위치-시간 그래프 (x-t / y-t)</span>
-        <span class="badge" style="color:#22c55e;">Green: y(t) | Blue: x(t)</span>
+        <span class="badge" style="color:#10b981; border-color: rgba(16,185,129,0.4);">Green: y(t) | Blue: x(t)</span>
       </div>
       <canvas class="graph-canvas" id="cvsGraphPos"></canvas>
     </div>
@@ -679,7 +808,7 @@
     <div class="graph-container" id="graphContainer2">
       <div class="graph-header">
         <span>속도-시간 그래프 (v_x-t / v_y-t)</span>
-        <span class="badge" style="color:#f97316;">Orange: v_y | Blue: v_x</span>
+        <span class="badge" style="color:#f97316; border-color: rgba(249,115,22,0.4);">Orange: v_y | Blue: v_x</span>
       </div>
       <canvas class="graph-canvas" id="cvsGraphVel"></canvas>
     </div>
@@ -687,17 +816,17 @@
     <!-- Graph 3: Energy Bar Chart -->
     <div class="graph-container" id="graphContainer3">
       <div class="graph-header">
-        <span>역학적 에너지 보존 breakdown</span>
-        <span class="badge" style="color:#38bdf8;">Total = E_k + E_p</span>
+        <span>역학적 에너지 보존 (Energy Breakdown)</span>
+        <span class="badge" style="color:#38bdf8; border-color: rgba(56,189,248,0.4);">Total = E_k + E_p</span>
       </div>
       <canvas class="graph-canvas" id="cvsGraphEnergy"></canvas>
     </div>
 
     <!-- Mode 3 Data Table (Hidden by default, shown in Data Mode) -->
     <div class="data-table-container" id="tableContainer" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span style="font-weight:700; font-size:0.85rem; color:var(--cyan-accent);">실험 기록 로그 (Experiment Data Log)</span>
-        <button class="btn-secondary" onclick="exportCSV()">CSV Data Export (실험 데이터 다운로드)</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-weight:800; font-size:0.9rem; color:var(--cyan-accent);">📋 실험 기록 로그 (Experiment Data Log)</span>
+        <button class="btn-secondary" onclick="exportCSV()">📥 CSV Data Export (실험 데이터 다운로드)</button>
       </div>
       <table class="data-table">
         <thead>
@@ -802,8 +931,8 @@
       ]
     };
 
-    // Color Palette for Past Trajectories
-    const trajectoryColors = ['#eab308', '#38bdf8', '#ec4899'];
+    // Premium Color Palette for Past Trajectories
+    const trajectoryColors = ['#f59e0b', '#38bdf8', '#a855f7'];
 
     /* ==========================================
        CANVAS & RENDERERS INITIALIZATION
@@ -819,9 +948,9 @@
     const ctxEnergy = cvsEnergy.getContext('2d');
 
     // Scale / Coordinate Mapping Parameters
-    let meterToPx = 8; // 1 meter = 8 pixels default
-    let originX = 60;  // canvas px for ground x=0
-    let originY = 0;   // canvas px for ground y=0 (calculated on resize)
+    let meterToPx = 8;
+    let originX = 60;
+    let originY = 0;
 
     function resizeCanvases() {
       const dpr = window.devicePixelRatio || 1;
@@ -832,13 +961,13 @@
       simCanvas.height = rectSim.height * dpr;
       simCtx.scale(dpr, dpr);
       
-      originY = rectSim.height - 50;
+      originY = rectSim.height - 55;
 
       // Graphs
       [cvsPos, cvsVel, cvsEnergy].forEach(cvs => {
         const r = cvs.parentElement.getBoundingClientRect();
-        cvs.width = (r.width - 16) * dpr;
-        cvs.height = (r.height - 30) * dpr;
+        cvs.width = (r.width - 20) * dpr;
+        cvs.height = (r.height - 35) * dpr;
         const ctx = cvs.getContext('2d');
         ctx.scale(dpr, dpr);
       });
@@ -898,10 +1027,8 @@
       document.getElementById('tabSandbox').classList.toggle('active', modeName === 'sandbox');
       document.getElementById('tabData').classList.toggle('active', modeName === 'data');
 
-      // Mission UI Card
       document.getElementById('missionCard').style.display = (modeName === 'mission') ? 'block' : 'none';
 
-      // Bottom Panel Layout
       const tableContainer = document.getElementById('tableContainer');
       const g1 = document.getElementById('graphContainer1');
       const g2 = document.getElementById('graphContainer2');
@@ -934,7 +1061,6 @@
       document.getElementById('missionBadge').innerText = `Level ${lvlIndex + 1} / 5`;
       document.getElementById('missionFeedback').innerText = "발사 버튼을 눌러 시뮬레이션을 시작하세요.";
 
-      // Lock/Preset mission environment
       syncInput('height', m.height);
       syncInput('gravity', m.gravity);
       syncInput('drag', m.drag);
@@ -968,18 +1094,16 @@
         t: 0
       }];
 
-      document.getElementById('btnLaunch').innerText = "발사 (Launch)";
-      document.getElementById('btnPause').innerText = "일시정지";
+      document.getElementById('btnLaunch').innerText = "🚀 발사 (Launch)";
+      document.getElementById('btnPause').innerText = "⏸️ 일시정지";
       updateHUD();
       updateFormulas();
     }
 
     function toggleLaunch() {
       if (state.running) {
-        // Reset
         resetSimulationState();
       } else {
-        // Save current trajectory to history if present
         if (state.currentTrajectory.length > 5) {
           state.historyTrajectories.push({
             points: [...state.currentTrajectory],
@@ -992,7 +1116,7 @@
 
         resetSimulationState();
         state.running = true;
-        document.getElementById('btnLaunch').innerText = "리셋 (Reset)";
+        document.getElementById('btnLaunch').innerText = "🔄 리셋 (Reset)";
         lastTime = performance.now();
         requestAnimationFrame(simLoop);
       }
@@ -1002,7 +1126,7 @@
     function togglePause() {
       if (!state.running) return;
       state.paused = !state.paused;
-      document.getElementById('btnPause').innerText = state.paused ? "재개 (Resume)" : "일시정지";
+      document.getElementById('btnPause').innerText = state.paused ? "▶️ 재개 (Resume)" : "⏸️ 일시정지";
       if (!state.paused) {
         lastTime = performance.now();
         requestAnimationFrame(simLoop);
@@ -1022,7 +1146,7 @@
       draw();
     }
 
-    // Main Physics Numerical Integration (Verlet / Euler Integration)
+    // Physics Engine Loop
     let lastTime = 0;
     function simLoop(timestamp) {
       if (!state.running || state.paused) return;
@@ -1030,37 +1154,30 @@
       let dt = (timestamp - lastTime) / 1000;
       lastTime = timestamp;
 
-      // Cap delta time to prevent leap bug on tab unfocus
       if (dt > 0.1) dt = 0.1;
       if (state.slowMo) dt *= 0.25;
 
-      // Sub-stepping for numerical precision
       const subSteps = 10;
       const subDt = dt / subSteps;
 
       for (let step = 0; step < subSteps; step++) {
         if (!state.inGroundContact) {
-          // Air Drag Force Components: F_drag = -k * v
           const F_drag_x = -state.drag * state.vx;
           const F_drag_y = -state.drag * state.vy;
 
-          // Accelerations: a = F / m
           state.ax = F_drag_x / state.mass;
           state.ay = -state.gravity + (F_drag_y / state.mass);
 
-          // Update Velocity & Position (Explicit Euler Integration)
           state.vx += state.ax * subDt;
           state.vy += state.ay * subDt;
 
           state.x += state.vx * subDt;
           state.y += state.vy * subDt;
 
-          // Wall collision check (Mode 1 Level 3)
           if (state.mode === 'mission' && state.missions[state.currentLevel].wallH > 0) {
             const wallX = state.missions[state.currentLevel].wallX;
             const wallH = state.missions[state.currentLevel].wallH;
             if (Math.abs(state.x - wallX) < 0.3 && state.y <= wallH) {
-              // Hit wall
               state.vx = 0;
               state.running = false;
               checkMissionResult(false, "장벽에 충돌했습니다!");
@@ -1068,14 +1185,12 @@
             }
           }
 
-          // Ground Contact Detection
           if (state.y <= 0) {
             state.y = 0;
             state.vy = 0;
             state.inGroundContact = true;
           }
         } else {
-          // Friction on ground sliding: F_f = mu * m * g
           const frictionAccel = state.friction * state.gravity;
           if (Math.abs(state.vx) > 0.05) {
             const dir = Math.sign(state.vx);
@@ -1084,7 +1199,7 @@
             state.x += state.vx * subDt;
           } else {
             state.vx = 0;
-            state.running = false; // Stopped
+            state.running = false;
             onSimulationComplete();
             break;
           }
@@ -1093,7 +1208,6 @@
         state.t += subDt;
       }
 
-      // Record point for trajectory
       state.currentTrajectory.push({
         x: state.x,
         y: state.y,
@@ -1112,7 +1226,6 @@
     }
 
     function onSimulationComplete() {
-      // Record to Data Log
       const hMax = Math.max(...state.currentTrajectory.map(p => p.y));
       const range = state.x;
       const vImpact = Math.hypot(
@@ -1135,16 +1248,15 @@
 
       state.logs.push(logRecord);
 
-      // Check Mission Grade
       if (state.mode === 'mission') {
         const targetX = state.missions[state.currentLevel].targetX;
         const err = Math.abs(range - targetX);
         if (err <= 2.5) {
-          checkMissionResult(true, "정확합니다! 역학 에너지가 정확히 전달되었습니다.");
+          checkMissionResult(true, "🎉 정확합니다! 목표 지점에 정밀하게 도달했습니다.");
         } else if (range < targetX) {
-          checkMissionResult(false, "도달 거리가 부족합니다. 발사 각도나 초속도를 높여보세요.");
+          checkMissionResult(false, "⚠️ 도달 거리가 부족합니다. 발사 각도나 초속도를 높여보세요.");
         } else {
-          checkMissionResult(false, "목표지점을 초과했습니다. 공기 저항이나 중력의 영향을 고려하세요.");
+          checkMissionResult(false, "⚠️ 목표지점을 초과했습니다. 공기 저항이나 중력의 영향을 고려하세요.");
         }
       }
     }
@@ -1152,11 +1264,12 @@
     function checkMissionResult(success, msg) {
       const fb = document.getElementById('missionFeedback');
       fb.innerText = msg;
-      fb.style.color = success ? '#22c55e' : '#f43f5e';
+      fb.style.color = success ? '#10b981' : '#f43f5e';
+      fb.style.borderColor = success ? '#10b981' : '#f43f5e';
     }
 
     /* ==========================================
-       CANVAS RENDERING ENGINE
+       HIGH-END CANVAS RENDERING ENGINE
        ========================================== */
     function draw() {
       const width = simCanvas.width / (window.devicePixelRatio || 1);
@@ -1164,7 +1277,6 @@
 
       simCtx.clearRect(0, 0, width, height);
 
-      // Dynamic Camera Scaling based on distance
       let maxDist = Math.max(80, state.x + 20);
       if (state.mode === 'mission') {
         maxDist = Math.max(maxDist, state.missions[state.currentLevel].targetX + 20);
@@ -1173,12 +1285,11 @@
 
       // 1. Grid Lines
       if (document.getElementById('chkGrid').checked) {
-        simCtx.strokeStyle = '#1e293b';
+        simCtx.strokeStyle = 'rgba(30, 41, 59, 0.6)';
         simCtx.lineWidth = 1;
         const stepMeters = 10;
         const stepPx = stepMeters * meterToPx;
 
-        // Vertical Grid Lines
         for (let x = originX; x < width; x += stepPx) {
           simCtx.beginPath();
           simCtx.moveTo(x, 0);
@@ -1186,12 +1297,11 @@
           simCtx.stroke();
 
           const mVal = Math.round((x - originX) / meterToPx);
-          simCtx.fillStyle = '#475569';
-          simCtx.font = '10px monospace';
-          simCtx.fillText(`${mVal}m`, x + 2, originY + 14);
+          simCtx.fillStyle = '#64748b';
+          simCtx.font = '10px "JetBrains Mono", monospace';
+          simCtx.fillText(`${mVal}m`, x + 4, originY + 16);
         }
 
-        // Horizontal Grid Lines
         for (let y = originY; y > 0; y -= stepPx) {
           simCtx.beginPath();
           simCtx.moveTo(originX, y);
@@ -1200,65 +1310,77 @@
 
           const mVal = Math.round((originY - y) / meterToPx);
           if (mVal > 0) {
-            simCtx.fillStyle = '#475569';
-            simCtx.font = '10px monospace';
-            simCtx.fillText(`${mVal}m`, originX - 30, y + 3);
+            simCtx.fillStyle = '#64748b';
+            simCtx.font = '10px "JetBrains Mono", monospace';
+            simCtx.fillText(`${mVal}m`, originX - 32, y + 3);
           }
         }
       }
 
-      // 2. Ground & Cliff
-      simCtx.fillStyle = '#1e293b';
+      // 2. Ground Gradient & Cliff
+      const groundGradient = simCtx.createLinearGradient(0, originY, 0, height);
+      groundGradient.addColorStop(0, '#1e293b');
+      groundGradient.addColorStop(1, '#0f172a');
+      simCtx.fillStyle = groundGradient;
       simCtx.fillRect(0, originY, width, height - originY);
+
+      // Glowing Ground Boundary
       simCtx.strokeStyle = '#38bdf8';
       simCtx.lineWidth = 2;
+      simCtx.shadowColor = '#38bdf8';
+      simCtx.shadowBlur = 10;
       simCtx.beginPath();
       simCtx.moveTo(0, originY);
       simCtx.lineTo(width, originY);
       simCtx.stroke();
+      simCtx.shadowBlur = 0; // Reset
 
-      // Cliff (Launch Height)
+      // Cliff Rendering
       if (state.height > 0) {
         const cliffPxH = state.height * meterToPx;
         simCtx.fillStyle = '#334155';
         simCtx.fillRect(0, originY - cliffPxH, originX, cliffPxH);
-        simCtx.strokeStyle = '#94a3b8';
+        simCtx.strokeStyle = '#64748b';
         simCtx.strokeRect(0, originY - cliffPxH, originX, cliffPxH);
       }
 
-      // 3. Mission Elements (Target & Obstacle Wall)
+      // 3. Mission Target & Obstacle Wall
       if (state.mode === 'mission') {
         const m = state.missions[state.currentLevel];
 
-        // Target
+        // Target Zone Glow
         const targetPxX = originX + (m.targetX * meterToPx);
-        simCtx.fillStyle = 'rgba(244, 63, 94, 0.3)';
+        simCtx.fillStyle = 'rgba(244, 63, 94, 0.25)';
         simCtx.beginPath();
-        simCtx.ellipse(targetPxX, originY, 15, 6, 0, 0, Math.PI * 2);
+        simCtx.ellipse(targetPxX, originY, 18, 6, 0, 0, Math.PI * 2);
         simCtx.fill();
+        
         simCtx.strokeStyle = '#f43f5e';
         simCtx.lineWidth = 2;
+        simCtx.shadowColor = '#f43f5e';
+        simCtx.shadowBlur = 12;
         simCtx.stroke();
+        simCtx.shadowBlur = 0;
 
-        // Flag / Bullseye Icon
+        // Target Flag Pole
         simCtx.fillStyle = '#f43f5e';
-        simCtx.fillRect(targetPxX - 1, originY - 25, 2, 25);
+        simCtx.fillRect(targetPxX - 1, originY - 28, 2, 28);
         simCtx.beginPath();
-        simCtx.arc(targetPxX, originY - 25, 5, 0, Math.PI * 2);
+        simCtx.arc(targetPxX, originY - 28, 6, 0, Math.PI * 2);
         simCtx.fill();
 
         // Wall Obstacle
         if (m.wallH > 0) {
           const wallPxX = originX + (m.wallX * meterToPx);
           const wallPxH = m.wallH * meterToPx;
-          simCtx.fillStyle = '#64748b';
-          simCtx.fillRect(wallPxX - 4, originY - wallPxH, 8, wallPxH);
-          simCtx.strokeStyle = '#cbd5e1';
-          simCtx.strokeRect(wallPxX - 4, originY - wallPxH, 8, wallPxH);
+          simCtx.fillStyle = '#475569';
+          simCtx.fillRect(wallPxX - 5, originY - wallPxH, 10, wallPxH);
+          simCtx.strokeStyle = '#94a3b8';
+          simCtx.strokeRect(wallPxX - 5, originY - wallPxH, 10, wallPxH);
         }
       }
 
-      // 4. Past Trajectories (History)
+      // 4. Past Trajectories (History Lines)
       state.historyTrajectories.forEach(traj => {
         if (traj.points.length < 2) return;
         simCtx.strokeStyle = traj.color;
@@ -1275,10 +1397,12 @@
         simCtx.setLineDash([]);
       });
 
-      // 5. Current Trajectory Line
+      // 5. Current Glowing Trajectory
       if (state.currentTrajectory.length > 1) {
         simCtx.strokeStyle = '#38bdf8';
-        simCtx.lineWidth = 2.5;
+        simCtx.lineWidth = 3;
+        simCtx.shadowColor = '#38bdf8';
+        simCtx.shadowBlur = 8;
         simCtx.beginPath();
         state.currentTrajectory.forEach((p, idx) => {
           const px = originX + (p.x * meterToPx);
@@ -1287,46 +1411,47 @@
           else simCtx.lineTo(px, py);
         });
         simCtx.stroke();
+        simCtx.shadowBlur = 0;
       }
 
-      // 6. Object Rendering
+      // 6. Projectile Object Rendering
       const objPxX = originX + (state.x * meterToPx);
       const objPxY = originY - (state.y * meterToPx);
 
-      // Object shadow
-      simCtx.fillStyle = 'rgba(0,0,0,0.3)';
+      // Object Drop Shadow
+      simCtx.fillStyle = 'rgba(0,0,0,0.4)';
       simCtx.beginPath();
-      simCtx.ellipse(objPxX, originY, 8, 3, 0, 0, Math.PI * 2);
+      simCtx.ellipse(objPxX, originY, 10, 4, 0, 0, Math.PI * 2);
       simCtx.fill();
 
-      // Main Projectile Circle
-      simCtx.fillStyle = '#38bdf8';
+      // Glowing Ball
+      simCtx.fillStyle = '#ffffff';
+      simCtx.shadowColor = '#38bdf8';
+      simCtx.shadowBlur = 16;
       simCtx.beginPath();
-      simCtx.arc(objPxX, objPxY, 8, 0, Math.PI * 2);
+      simCtx.arc(objPxX, objPxY, 9, 0, Math.PI * 2);
       simCtx.fill();
-      simCtx.strokeStyle = '#ffffff';
-      simCtx.lineWidth = 1.5;
+      simCtx.strokeStyle = '#38bdf8';
+      simCtx.lineWidth = 2;
       simCtx.stroke();
+      simCtx.shadowBlur = 0;
 
-      // 7. Vector Arrow Visualizations
+      // 7. Vector Arrows
       const drawVelVec = document.getElementById('chkVelVec').checked;
       const drawForceVec = document.getElementById('chkForceVec').checked;
       const drawCompVec = document.getElementById('chkCompVec').checked;
 
-      const vecScale = 1.2;
+      const vecScale = 1.3;
 
-      // Velocity Components (blue & orange)
       if (drawCompVec && (state.running || state.t === 0)) {
-        drawArrow(simCtx, objPxX, objPxY, objPxX + (state.vx * vecScale), objPxY, '#3b82f6', 2); // Vx
-        drawArrow(simCtx, objPxX, objPxY, objPxX, objPxY - (state.vy * vecScale), '#f97316', 2); // Vy
+        drawArrow(simCtx, objPxX, objPxY, objPxX + (state.vx * vecScale), objPxY, '#3b82f6', 2);
+        drawArrow(simCtx, objPxX, objPxY, objPxX, objPxY - (state.vy * vecScale), '#f97316', 2);
       }
 
-      // Main Velocity Vector (Green)
       if (drawVelVec && (state.running || state.t === 0)) {
-        drawArrow(simCtx, objPxX, objPxY, objPxX + (state.vx * vecScale), objPxY - (state.vy * vecScale), '#22c55e', 2.5);
+        drawArrow(simCtx, objPxX, objPxY, objPxX + (state.vx * vecScale), objPxY - (state.vy * vecScale), '#10b981', 2.5);
       }
 
-      // Force Vector (Red) - Gravity + Drag
       if (drawForceVec && (state.running || state.t === 0)) {
         const Fx = -state.drag * state.vx;
         const Fy = -state.mass * state.gravity - (state.drag * state.vy);
@@ -1334,13 +1459,12 @@
         drawArrow(simCtx, objPxX, objPxY, objPxX + (Fx * fScale), objPxY - (Fy * fScale), '#f43f5e', 2.5);
       }
 
-      // Render Graphs
       drawGraphs();
     }
 
-    // Helper Arrow Drawing
+    // Helper: Precise Arrow Drawing with Head
     function drawArrow(ctx, fromX, fromY, toX, toY, color, width) {
-      const headLen = 8;
+      const headLen = 9;
       const dx = toX - fromX;
       const dy = toY - fromY;
       const angle = Math.atan2(dy, dx);
@@ -1382,24 +1506,24 @@
         const maxT = Math.max(5, traj[traj.length - 1].t);
         const maxY = Math.max(20, ...traj.map(p => p.y), ...traj.map(p => p.x));
 
-        // Draw x(t) - Blue
+        // x(t) - Blue
         ctxPos.strokeStyle = '#3b82f6';
-        ctxPos.lineWidth = 1.5;
+        ctxPos.lineWidth = 1.8;
         ctxPos.beginPath();
         traj.forEach((p, i) => {
-          const gx = 25 + (p.t / maxT) * (wPos - 35);
-          const gy = hPos - 15 - (p.x / maxY) * (hPos - 25);
+          const gx = 30 + (p.t / maxT) * (wPos - 40);
+          const gy = hPos - 18 - (p.x / maxY) * (hPos - 28);
           if (i === 0) ctxPos.moveTo(gx, gy); else ctxPos.lineTo(gx, gy);
         });
         ctxPos.stroke();
 
-        // Draw y(t) - Green
-        ctxPos.strokeStyle = '#22c55e';
-        ctxPos.lineWidth = 1.5;
+        // y(t) - Green
+        ctxPos.strokeStyle = '#10b981';
+        ctxPos.lineWidth = 1.8;
         ctxPos.beginPath();
         traj.forEach((p, i) => {
-          const gx = 25 + (p.t / maxT) * (wPos - 35);
-          const gy = hPos - 15 - (p.y / maxY) * (hPos - 25);
+          const gx = 30 + (p.t / maxT) * (wPos - 40);
+          const gy = hPos - 18 - (p.y / maxY) * (hPos - 28);
           if (i === 0) ctxPos.moveTo(gx, gy); else ctxPos.lineTo(gx, gy);
         });
         ctxPos.stroke();
@@ -1415,30 +1539,30 @@
         const maxT = Math.max(5, traj[traj.length - 1].t);
         const maxV = Math.max(30, ...traj.map(p => Math.abs(p.vx)), ...traj.map(p => Math.abs(p.vy)));
 
-        // Draw v_x(t) - Blue
+        // v_x(t) - Blue
         ctxVel.strokeStyle = '#3b82f6';
-        ctxVel.lineWidth = 1.5;
+        ctxVel.lineWidth = 1.8;
         ctxVel.beginPath();
         traj.forEach((p, i) => {
-          const gx = 25 + (p.t / maxT) * (wVel - 35);
-          const gy = hVel - 15 - (p.vx / maxV) * (hVel - 25);
+          const gx = 30 + (p.t / maxT) * (wVel - 40);
+          const gy = hVel - 18 - (p.vx / maxV) * (hVel - 28);
           if (i === 0) ctxVel.moveTo(gx, gy); else ctxVel.lineTo(gx, gy);
         });
         ctxVel.stroke();
 
-        // Draw v_y(t) - Orange
+        // v_y(t) - Orange
         ctxVel.strokeStyle = '#f97316';
-        ctxVel.lineWidth = 1.5;
+        ctxVel.lineWidth = 1.8;
         ctxVel.beginPath();
         traj.forEach((p, i) => {
-          const gx = 25 + (p.t / maxT) * (wVel - 35);
-          const gy = hVel / 2 - (p.vy / maxV) * (hVel / 2 - 15);
+          const gx = 30 + (p.t / maxT) * (wVel - 40);
+          const gy = hVel / 2 - (p.vy / maxV) * (hVel / 2 - 18);
           if (i === 0) ctxVel.moveTo(gx, gy); else ctxVel.lineTo(gx, gy);
         });
         ctxVel.stroke();
       }
 
-      // 3. Energy Bar Chart
+      // 3. Energy Breakdown Bar Chart
       const wE = cvsEnergy.width / dpr;
       const hE = cvsEnergy.height / dpr;
       ctxEnergy.clearRect(0, 0, wE, hE);
@@ -1447,46 +1571,46 @@
       const Ep = state.mass * state.gravity * state.y;
       const Etotal = Ek + Ep;
 
-      const barWidth = 40;
-      const maxEnergy = Math.max(100, Etotal * 1.2);
+      const barWidth = 36;
+      const maxEnergy = Math.max(100, Etotal * 1.25);
 
-      const hEk = (Ek / maxEnergy) * (hE - 30);
-      const hEp = (Ep / maxEnergy) * (hE - 30);
+      const hEk = (Ek / maxEnergy) * (hE - 32);
+      const hEp = (Ep / maxEnergy) * (hE - 32);
+      const hEt = (Etotal / maxEnergy) * (hE - 32);
 
       // Ek Bar (Green)
-      ctxEnergy.fillStyle = '#22c55e';
-      ctxEnergy.fillRect(wE / 4 - barWidth / 2, hE - 15 - hEk, barWidth, hEk);
+      ctxEnergy.fillStyle = '#10b981';
+      ctxEnergy.fillRect(wE / 4 - barWidth / 2, hE - 18 - hEk, barWidth, hEk);
       ctxEnergy.fillStyle = '#94a3b8';
-      ctxEnergy.font = '10px monospace';
-      ctxEnergy.fillText("E_k", wE / 4 - 8, hE - 3);
+      ctxEnergy.font = '10px "JetBrains Mono", monospace';
+      ctxEnergy.fillText("E_k", wE / 4 - 8, hE - 4);
 
       // Ep Bar (Orange)
       ctxEnergy.fillStyle = '#f97316';
-      ctxEnergy.fillRect((wE / 4) * 2 - barWidth / 2, hE - 15 - hEp, barWidth, hEp);
+      ctxEnergy.fillRect((wE / 4) * 2 - barWidth / 2, hE - 18 - hEp, barWidth, hEp);
       ctxEnergy.fillStyle = '#94a3b8';
-      ctxEnergy.fillText("E_p", (wE / 4) * 2 - 8, hE - 3);
+      ctxEnergy.fillText("E_p", (wE / 4) * 2 - 8, hE - 4);
 
-      // Etotal Bar (Cyan)
-      const hEt = (Etotal / maxEnergy) * (hE - 30);
+      // Total Energy Bar (Cyan)
       ctxEnergy.fillStyle = '#38bdf8';
-      ctxEnergy.fillRect((wE / 4) * 3 - barWidth / 2, hE - 15 - hEt, barWidth, hEt);
+      ctxEnergy.fillRect((wE / 4) * 3 - barWidth / 2, hE - 18 - hEt, barWidth, hEt);
       ctxEnergy.fillStyle = '#94a3b8';
-      ctxEnergy.fillText("Total", (wE / 4) * 3 - 12, hE - 3);
+      ctxEnergy.fillText("Total", (wE / 4) * 3 - 12, hE - 4);
     }
 
     function drawGraphAxes(ctx, w, h, xLabel, yLabel) {
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(25, 5);
-      ctx.lineTo(25, h - 15);
-      ctx.lineTo(w - 5, h - 15);
+      ctx.moveTo(30, 8);
+      ctx.lineTo(30, h - 18);
+      ctx.lineTo(w - 8, h - 18);
       ctx.stroke();
 
       ctx.fillStyle = '#64748b';
-      ctx.font = '9px monospace';
-      ctx.fillText(xLabel, w - 25, h - 3);
-      ctx.fillText(yLabel, 2, 12);
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillText(xLabel, w - 28, h - 4);
+      ctx.fillText(yLabel, 4, 14);
     }
 
     /* ==========================================
